@@ -15,14 +15,20 @@ def system_report():
     serial = run("system_profiler SPHardwareDataType | awk '/Serial/ {print $4}'")
     hostname = run("hostname")
     uptime = run("uptime")
-    disk = run("df -h / | awk 'NR==2 {print $5}'")
+    
+    disk_info = run("df -h /System/Volumes/Data | awk 'NR==2 {print $2, $3, $4, $5}'")
+    disk_size, disk_used, disk_free, disk_percent_used = disk_info.split()
+    
     filevault = run("fdesetup status")
 
     results.insert(tk.END, f"macOS Version: {os_version}\n")
     results.insert(tk.END, f"Serial Number: {serial}\n")
     results.insert(tk.END, f"Hostname: {hostname}\n")
     results.insert(tk.END, f"Uptime: {uptime}\n")
-    results.insert(tk.END, f"Disk Usage: {disk}\n")
+    results.insert(tk.END, f"Disk Size: {disk_size}\n")
+    results.insert(tk.END, f"Used Space: {disk_used}\n")
+    results.insert(tk.END, f"Free Space: {disk_free}\n")
+    results.insert(tk.END, f"Percentage Used: {disk_percent_used}\n")
     results.insert(tk.END, f"FileVault Status: {filevault}\n")
 
 app = tk.Tk()
