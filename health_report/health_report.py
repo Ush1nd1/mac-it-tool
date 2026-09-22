@@ -1,11 +1,34 @@
+import os
 import subprocess
 import tkinter as tk
+
 
 def run(cmd):
     try:
         return subprocess.check_output(cmd, shell=True).decode().strip()
     except:
         return "Error"
+
+    def get_storage_info():
+    if os.path.exists("/System/Volumes/Data"):
+        storage_path = "/System/Volumes/Data"
+    else:
+        storage_path = "/"
+
+    disk_info = run(f"df -h {storage_path} | awk 'NR==2 {{print $2, $3, $4, $5}}'")
+    disk_blocks = run(f"df {storage_path} | awk 'NR==2 {{print $2}}'")
+    used_blocks = run(f"df {storage_path} | awk 'NR==2 {{print $3}}'")
+
+    used_blocks = int(used_blocks)
+    used_space_gb = round(used_blocks * 512 / 1_000_000_000, 2)
+
+    disk_blocks = int(disk_blocks)
+    disk_size_gb = round(disk_blocks * 512 / 1_000_000_000, 2)
+
+    return storage_path, disk_info, disk_size_gb, used_space_gb
+
+
+
 
 def system_report():
     results.delete(1.0, tk.END)
@@ -15,8 +38,8 @@ def system_report():
     serial = run("system_profiler SPHardwareDataType | awk '/Serial/ {print $4}'")
     hostname = run("hostname")
     uptime = run("uptime")
-    
-    disk_info = run("df -h /System/Volumes/Data | awk 'NR==2 {print $2, $3, $4, $5}'")
+
+    storage_path, disk_info, disk_size_gb, used_space_gb = get_storage_info()
     disk_size, disk_used, disk_free, disk_percent_used = disk_info.split()
     
     filevault = run("fdesetup status")
@@ -29,6 +52,8 @@ def system_report():
     results.insert(tk.END, f"Used Space: {disk_used}\n")
     results.insert(tk.END, f"Free Space: {disk_free}\n")
     results.insert(tk.END, f"Percentage Used: {disk_percent_used}\n")
+    results.insert(tk.END, f"Disk Size GB Test: {disk_size_gb} GB\n")
+    results.insert(tk.END, f"Used Space GB Test: {used_space_gb} GB\n")
     results.insert(tk.END, f"FileVault Status: {filevault}\n")
 
 app = tk.Tk()
