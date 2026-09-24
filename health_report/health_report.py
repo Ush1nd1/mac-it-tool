@@ -9,11 +9,22 @@ def run(cmd):
     except:
         return "Error"
 
-    def get_storage_info():
+def get_storage_info():
     if os.path.exists("/System/Volumes/Data"):
         storage_path = "/System/Volumes/Data"
     else:
         storage_path = "/"
+
+    container_total = run("diskutil info / | awk -F'[()]' '/Container Total Space:/ {print $2}'")
+    container_total = container_total.replace(" Bytes", "")
+    container_total = int(container_total)
+    container_total_gb = round(container_total / 1_000_000_000, 2)
+    container_free = run("diskutil info / | awk -F'[()]' '/Container Free Space:/ {print $2}'")
+    container_free = container_free.replace(" Bytes", "")
+    container_free = int(container_free)
+    container_free_gb = round(container_free / 1_000_000_000, 2)
+    container_used = container_total - container_free
+    container_used_gb = round(container_used / 1_000_000_000, 2)
 
     disk_info = run(f"df -h {storage_path} | awk 'NR==2 {{print $2, $3, $4, $5}}'")
     disk_blocks = run(f"df {storage_path} | awk 'NR==2 {{print $2}}'")
@@ -25,7 +36,7 @@ def run(cmd):
     disk_blocks = int(disk_blocks)
     disk_size_gb = round(disk_blocks * 512 / 1_000_000_000, 2)
 
-    return storage_path, disk_info, disk_size_gb, used_space_gb
+    return storage_path, disk_info, disk_size_gb, used_space_gb, container_total_gb, container_free_gb, container_used_gb
 
 
 
@@ -39,7 +50,7 @@ def system_report():
     hostname = run("hostname")
     uptime = run("uptime")
 
-    storage_path, disk_info, disk_size_gb, used_space_gb = get_storage_info()
+    storage_path, disk_info, disk_size_gb, used_space_gb, container_total_gb, container_free_gb, container_used_gb = get_storage_info()
     disk_size, disk_used, disk_free, disk_percent_used = disk_info.split()
     
     filevault = run("fdesetup status")
@@ -54,6 +65,9 @@ def system_report():
     results.insert(tk.END, f"Percentage Used: {disk_percent_used}\n")
     results.insert(tk.END, f"Disk Size GB Test: {disk_size_gb} GB\n")
     results.insert(tk.END, f"Used Space GB Test: {used_space_gb} GB\n")
+    results.insert(tk.END, f"APFS Total Test: {container_total_gb} GB\n")
+    results.insert(tk.END, f"APFS Free Test: {container_free_gb} GB\n")
+    results.insert(tk.END, f"APFS Used Test: {container_used_gb} GB\n")
     results.insert(tk.END, f"FileVault Status: {filevault}\n")
 
 app = tk.Tk()
