@@ -54,23 +54,26 @@ def system_report():
     storage_path, disk_info, disk_size_gb, used_space_gb, container_total_gb, container_free_gb, container_used_gb, container_percent_used = get_storage_info()
     disk_size, disk_used, disk_free, disk_percent_used = disk_info.split()
     
-    filevault = run("fdesetup status")
+    filevault = run("fdesetup status | head -1")
+    filevault = filevault.replace("FileVault is ", "").replace(".", "")
 
     results.insert(tk.END, f"macOS Version: {os_version}\n")
     results.insert(tk.END, f"Serial Number: {serial}\n")
     results.insert(tk.END, f"Hostname: {hostname}\n")
     results.insert(tk.END, f"Uptime: {uptime}\n")
-    results.insert(tk.END, f"Disk Size: {disk_size}\n")
-    results.insert(tk.END, f"Used Space: {disk_used}\n")
-    results.insert(tk.END, f"Free Space: {disk_free}\n")
-    results.insert(tk.END, f"Percentage Used: {disk_percent_used}\n")
-    results.insert(tk.END, f"Disk Size GB Test: {disk_size_gb} GB\n")
-    results.insert(tk.END, f"Used Space GB Test: {used_space_gb} GB\n")
-    results.insert(tk.END, f"APFS Total Test: {container_total_gb} GB\n")
-    results.insert(tk.END, f"APFS Free Test: {container_free_gb} GB\n")
-    results.insert(tk.END, f"APFS Used Test: {container_used_gb} GB\n")
-    results.insert(tk.END, f"APFS Usage Test: {container_percent_used}%\n")
-    results.insert(tk.END, f"FileVault Status: {filevault}\n")
+    results.insert(tk.END, "\nStorage\n")
+    results.insert(tk.END, "--------------------------------\n")
+    # Data Volume Storage
+    results.insert(tk.END, f"Data Volume Used: {used_space_gb} GB\n\n")
+    # APFS Container Storage
+    results.insert(tk.END, f"APFS Capacity: {container_total_gb} GB\n")
+    results.insert(tk.END, f"APFS In Use: {container_used_gb} GB\n")
+    results.insert(tk.END, f"APFS Free: {container_free_gb} GB\n")
+    results.insert(tk.END, f"APFS Usage: {container_percent_used}%\n")
+
+    results.insert(tk.END, "\nSecurity\n")
+    results.insert(tk.END, "--------------------------------\n")
+    results.insert(tk.END, f"FileVault: {filevault}\n")
 
 app = tk.Tk()
 app.title("Mac Health Reporter")
