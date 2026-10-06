@@ -27,19 +27,12 @@ def get_storage_info():
     container_used_gb = round(container_used / 1_000_000_000, 2)
     container_percent_used = round(container_used / container_total * 100, 2)
 
-    disk_info = run(f"df -h {storage_path} | awk 'NR==2 {{print $2, $3, $4, $5}}'")
-    disk_blocks = run(f"df {storage_path} | awk 'NR==2 {{print $2}}'")
     used_blocks = run(f"df {storage_path} | awk 'NR==2 {{print $3}}'")
 
     used_blocks = int(used_blocks)
     used_space_gb = round(used_blocks * 512 / 1_000_000_000, 2)
 
-    disk_blocks = int(disk_blocks)
-    disk_size_gb = round(disk_blocks * 512 / 1_000_000_000, 2)
-
-    return storage_path, disk_info, disk_size_gb, used_space_gb, container_total_gb, container_free_gb, container_used_gb, container_percent_used
-
-
+    return used_space_gb, container_total_gb, container_free_gb, container_used_gb, container_percent_used
 
 
 def system_report():
@@ -51,8 +44,7 @@ def system_report():
     hostname = run("hostname")
     uptime = run("uptime")
 
-    storage_path, disk_info, disk_size_gb, used_space_gb, container_total_gb, container_free_gb, container_used_gb, container_percent_used = get_storage_info()
-    disk_size, disk_used, disk_free, disk_percent_used = disk_info.split()
+    used_space_gb, container_total_gb, container_free_gb, container_used_gb, container_percent_used = get_storage_info()
     
     filevault = run("fdesetup status | head -1")
     filevault = filevault.replace("FileVault is ", "").replace(".", "")
