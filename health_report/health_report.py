@@ -69,7 +69,7 @@ def system_report():
 
 app = tk.Tk()
 app.title("Mac Health Reporter")
-app.geometry("550x400")
+app.geometry("525x400")
 
 title = tk.Label(app, text="Mac Health Reporter", font=("Helvetica", 16, "bold"))
 title.pack(pady=10)
@@ -78,6 +78,6 @@ btn = tk.Button(app, text="Run Health Report", command=system_report)
 btn.pack(pady=5)
 
 results = tk.Text(app, height=18, width=70)
-results.pack(pady=10)
+results.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
 
 app.mainloop()
