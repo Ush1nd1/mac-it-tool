@@ -41,6 +41,7 @@ def system_report():
 
     os_version = run("sw_vers -productVersion")
     serial = run("system_profiler SPHardwareDataType | awk '/Serial/ {print $4}'")
+    computer_name = run("scutil --get ComputerName")
     hostname = run("hostname")
     uptime = run("uptime")
 
@@ -51,17 +52,21 @@ def system_report():
 
     results.insert(tk.END, f"macOS Version: {os_version}\n")
     results.insert(tk.END, f"Serial Number: {serial}\n")
+    results.insert(tk.END, f"Computer Name: {computer_name}\n")
     results.insert(tk.END, f"Hostname: {hostname}\n")
     results.insert(tk.END, f"Uptime: {uptime}\n")
     results.insert(tk.END, "\nStorage\n")
     results.insert(tk.END, "--------------------------------\n")
-    # Data Volume Storage
-    results.insert(tk.END, f"Data Volume Used: {used_space_gb} GB\n\n")
+
     # APFS Container Storage
-    results.insert(tk.END, f"APFS Capacity: {container_total_gb} GB\n")
-    results.insert(tk.END, f"APFS In Use: {container_used_gb} GB\n")
-    results.insert(tk.END, f"APFS Free: {container_free_gb} GB\n")
-    results.insert(tk.END, f"APFS Usage: {container_percent_used}%\n")
+    results.insert(tk.END, f"APFS Container Capacity: {container_total_gb} GB\n")
+    results.insert(tk.END, f"APFS Container Used: {container_used_gb} GB\n")
+    results.insert(tk.END, f"APFS Container Free: {container_free_gb} GB\n")
+    results.insert(tk.END, f"APFS Container Usage: {container_percent_used}%\n")
+    # Data Volume Storage
+    results.insert(tk.END, "\nAdvanced Storage Details\n")
+    results.insert(tk.END, "--------------------------------\n")
+    results.insert(tk.END, f"Data Volume Used: {used_space_gb} GB\n")
 
     results.insert(tk.END, "\nSecurity\n")
     results.insert(tk.END, "--------------------------------\n")
@@ -77,7 +82,15 @@ title.pack(pady=10)
 btn = tk.Button(app, text="Run Health Report", command=system_report)
 btn.pack(pady=5)
 
-results = tk.Text(app, height=18, width=70)
-results.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+results_frame = tk.Frame(app)
+results_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+
+scrollbar = tk.Scrollbar(results_frame)
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+results = tk.Text(results_frame, height=18, width=70, wrap=tk.WORD, yscrollcommand=scrollbar.set)
+results.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+scrollbar.config(command=results.yview)
 
 app.mainloop()
