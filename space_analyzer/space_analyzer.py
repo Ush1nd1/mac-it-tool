@@ -25,6 +25,8 @@ def format_sizes(output):
 def scan_storage():
     results.delete(1.0, tk.END)
     results.insert(tk.END, "📂 Largest Folders\n\n")
+    results.insert(tk.END, "Note: Results include accessible folders only.\n")
+    results.insert(tk.END, "Some locations may be excluded by macOS privacy permissions.\n\n")
 
     user_home = os.path.expanduser("~")
 
