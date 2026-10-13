@@ -1,7 +1,6 @@
 import os
 import subprocess
 import tkinter as tk
-from tkinter import messagebox
 
 def run(cmd):
     try:
@@ -9,7 +8,19 @@ def run(cmd):
     except:
         return "Error"
 
-biggest_paths = []
+def format_sizes(output):
+    formatted = []
+
+    for line in output.splitlines():
+        parts = line.split("\t", 1)
+
+        if len(parts) == 2:
+            size, path = parts
+            formatted.append(f"{size:>6}  {path}")
+        else:
+            formatted.append(line)
+
+    return "\n".join(formatted)
 
 def scan_storage():
     results.delete(1.0, tk.END)
@@ -24,22 +35,14 @@ def scan_storage():
         f"{user_home}/Library"
     ]
 
-    biggest_paths.clear()
-
     for folder in folders:
         display_name = folder.replace(user_home, "~")
 
         cmd = f"du -sh {folder}/* 2>/dev/null | sort -hr | head -3"
         output = run(cmd)
+        formatted_output = format_sizes(output)
 
-        results.insert(tk.END, f"Top in {display_name}:\n{output}\n\n")
-
-        for line in output.split("\n"):
-            try:
-                path = line.split("\t")[1]
-                biggest_paths.append(path)
-            except:
-                pass
+        results.insert(tk.END, f"Top in {display_name}:\n{formatted_output}\n\n")
 
     results.insert(tk.END, "\n🔬 Top User Library Subfolders\n\n")
 
@@ -52,20 +55,12 @@ def scan_storage():
     for path in deep_paths:
         display_name = path.replace(user_home, "~")
 
-        cmd = f"du -sh {path}/* 2>/dev/null | sort -hr | head -3"
+        cmd = f'du -sh "{path}"/* 2>/dev/null | sort -hr | head -3'
         output = run(cmd)
+        formatted_output = format_sizes(output)
 
-        results.insert(tk.END, f"Top in {display_name}:\n{output}\n\n")
+        results.insert(tk.END, f"Top in {display_name}:\n{formatted_output}\n\n")
 
-def show_biggest_locations():
-    if not biggest_paths:
-        messagebox.showwarning("No Data", "Run Scan Storage first.")
-        return
-
-    results.insert(tk.END, "\n📍 Largest Folder Locations\n\n")
-
-    for path in biggest_paths[:10]:
-        results.insert(tk.END, f"{path}\n")
 
 app = tk.Tk()
 app.title("Mac Space Analyzer")
@@ -80,10 +75,21 @@ btn_frame.pack(pady=5)
 scan_btn = tk.Button(btn_frame, text="Scan Largest Folders", command=scan_storage)
 scan_btn.grid(row=0, column=0, padx=5)
 
-location_btn = tk.Button(btn_frame, text="Show Folder Locations", command=show_biggest_locations)
-location_btn.grid(row=0, column=1, padx=5)
+results_frame = tk.Frame(app)
+results_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
 
-results = tk.Text(app, height=24, width=82)
-results.pack(pady=10)
+scrollbar = tk.Scrollbar(results_frame)
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+results = tk.Text(
+    results_frame,
+    height=24,
+    width=82,
+    wrap=tk.NONE,
+    yscrollcommand=scrollbar.set
+)
+results.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+scrollbar.config(command=results.yview)
 
 app.mainloop()
