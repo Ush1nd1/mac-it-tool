@@ -5,11 +5,22 @@ from tkinter import messagebox
 def run(cmd):
     try:
         return subprocess.check_output(cmd, shell=True).decode().strip()
-    except:
+    except Exception:
         return "Error"
 
 def check_storage():
-    disk_percent = int(run("df -h / | awk 'NR==2 {print $5}'").replace('%',''))
+    try:
+        total = int(run("diskutil info / | awk -F'[()]' '/Container Total Space:/ {print $2}'").replace(" Bytes", ""))
+        free = int(run("diskutil info / | awk -F'[()]' '/Container Free Space:/ {print $2}'").replace(" Bytes", ""))
+    except ValueError:
+        messagebox.showerror("Storage Error", "Unable to retrieve storage information.")
+        return
+
+    if total <= 0 or free < 0 or free > total:
+        messagebox.showerror("Storage Error", "Unable to read valid storage information.")
+        return
+
+    disk_percent = round((total - free) / total * 100, 2)
 
     if disk_percent >= 90:
         alert = "🚨 CRITICAL: Drive almost full"
@@ -25,10 +36,10 @@ def check_storage():
     messagebox.showinfo("Storage Status", f"Disk Usage: {disk_percent}%\n\n{alert}")
 
 app = tk.Tk()
-app.title("Storage Watch")
+app.title("Mac Storage Alert")
 app.geometry("350x180")
 
-title = tk.Label(app, text="Storage Watch", font=("Helvetica", 16, "bold"))
+title = tk.Label(app, text="Mac Storage Alert", font=("Helvetica", 16, "bold"))
 title.pack(pady=15)
 
 btn = tk.Button(app, text="Check Storage", command=check_storage)
